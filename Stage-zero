@@ -1,0 +1,56 @@
+## storing team information using lists 
+names = ["Ogungbe Abisoye", "Obadare Adedoye", "Adaaja Faith", "Urum Francis"]
+slack_usernames = ["Abisoye", "Adedoye Obafolaju", "Adaaja", "Uwanu"]
+emails = ["ogungbeadebola24@gmail.com", "adedoyeobafolaju@gmail.com", "faithadaaja@gmail.com", "urumfrank6@gmail.com"]
+hobbies = ["Reading", "Taking pictures", "Fashion designing", "Music listening"]
+countries = ["Nigeria", "Nigeria", "Nigeria", "Nigeria"]
+disciplines = ["Cell Biology and Genetics", "Cell Biology and Genetics", "Cell Biology and Genetics", "Cell Biology and Genetics"]
+preferred_programming_language = ["Python", "Python", "Python", "Python"]
+# organizing team data using dictionaries
+team_member1 = {
+    "Name": names[0],
+    "Slack Username": slack_usernames[0],
+    "Email": emails[0],
+    "Hobby": hobbies[0],
+    "Country": countries[0],
+    "Discipline": disciplines[0],
+    "Preferred Language": preferred_programming_language[0]
+}
+team_member2 = {
+    "Name": names[1],
+    "Slack Username": slack_usernames[1],
+    "Email": emails[1],
+    "Hobby": hobbies[1],
+    "Country": countries[1],
+    "Discipline": disciplines[1],
+    "Preferred Language": preferred_programming_language[1]
+}
+team_member3 = {
+    "Name": names[2],
+    "Slack Username": slack_usernames[2],
+    "Email": emails[2],
+    "Hobby": hobbies[2],
+    "Country": countries[2],
+    "Discipline": disciplines[2],
+    "Preferred Language": preferred_programming_language[2]
+}
+team_member4 = {
+    "Name": names[3],
+    "Slack Username": slack_usernames[3],
+    "Email": emails[3],
+    "Hobby": hobbies[3],
+    "Country": countries[3],
+    "Discipline": disciplines[3],
+    "Preferred Language": preferred_programming_language[3]
+}
+# Storing all team members in a list for easy access
+team = [team_member1, team_member2, team_member3, team_member4]
+# Creating a formatted output string for team information
+team = (
+    "Team Information:\n" + "\n\n"
+    f"Member 1: {team[0]}\n\n"
+    f"Member 2: {team[1]}\n\n"
+    f"Member 3: {team[2]}\n\n"
+    f"Member 4: {team[3]}\n\n"
+)
+print(team)
