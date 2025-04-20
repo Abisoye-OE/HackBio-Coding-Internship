@@ -1,0 +1,203 @@
+# Task 2.1
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy.stats import ttest_ind
+
+# Load dataset
+dataset = "https://raw.githubusercontent.com/HackBio-Internship/2025_project_collection/refs/heads/main/Python/Dataset/mcgc.tsv"
+df = pd.read_csv(dataset, sep='\t')
+# Define the function to calculate time to reach 80% of maximum
+def time_to_reach_80_percent(population_data):
+    maximum_population = max(population_data)
+    desired_population = 0.8 * maximum_population
+    for time_step in range(len(population_data)):
+        if population_data[time_step] >= desired_population:
+            return time_step
+    return -1
+# Plot growth curves for each column
+columns = df.columns[1:]  
+plt.figure(figsize=(12, 8))
+for column in columns:
+    plt.plot(df['time'], df[column], label=column, alpha=0.7)
+plt.title("Growth Curves")
+plt.xlabel("Time (minutes)")
+plt.ylabel("OD600")
+plt.legend()
+plt.tight_layout()
+plt.show()
+
+plt.title("Growth Curves of Knock-in and Knock-out Strains")
+plt.xlabel("Time (hours)")
+plt.ylabel("OD600")
+plt.legend()
+plt.tight_layout()
+plt.show()
+# Calculate time to carrying capacity (80% of max OD600)
+time_to_capacity = []
+strains = df.columns[1:]
+for strain in strains:
+    od_values = df[strain].tolist()
+    time_values = df['time'].tolist()
+    time_idx = time_to_reach_80_percent(od_values)
+    if time_idx != -1:
+        time_to_capacity.append({
+            'Strain': strain,
+            'Knock': 'N/A',  # Placeholder since 'Knock' is not in the dataset
+            'Replicate': 'N/A',  # Placeholder since 'Replicate' is not in the dataset
+            'Time_to_Capacity': time_values[time_idx]
+        })
+time_df = pd.DataFrame(time_to_capacity)
+# Scatter plot
+plt.figure(figsize=(10, 6))
+sns.scatterplot(data=time_df, x='Strain', y='Time_to_Capacity', hue='Knock', style='Knock', s=100)
+plt.title("Time to Reach Carrying Capacity by Strain and Knock Condition")
+plt.ylabel("Time to 80% Max OD600")
+plt.xlabel("Strain")
+plt.show()
+# Box plot
+plt.figure(figsize=(10, 6))
+sns.boxplot(data=time_df, x='Knock', y='Time_to_Capacity')
+plt.title("Boxplot of Time to Reach Carrying Capacity")
+plt.xlabel("Knock Condition")
+plt.ylabel("Time to 80% Max OD600")
+plt.show()
+# Statistical test 
+knock_out_times = time_df[time_df['Knock'] == '-']['Time_to_Capacity']
+knock_in_times = time_df[time_df['Knock'] == '+']['Time_to_Capacity']
+
+stat, pval = ttest_ind(knock_out_times, knock_in_times)
+print("T-test between knock-out and knock-in times:")
+print(f"Statistic: {stat:.4f}, P-value: {pval:.4f}")
+
+# Observations
+# If the p-value is less than 0.05, we conclude there is a significant difference
+# in the time it takes for knock-out vs knock-in strains to reach their carrying capacity.
+# This could imply that the genetic modification (knock-in or knock-out) has an influence on the growth dynamics of the strain.
+
+# Task 2.4
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Load datasets
+sift_dataset = "https://raw.githubusercontent.com/HackBio-Internship/public_datasets/main/R/datasets/sift.tsv"
+foldx_dataset = "https://raw.githubusercontent.com/HackBio-Internship/public_datasets/main/R/datasets/foldX.tsv"
+
+sift_df = pd.read_table(sift_dataset, sep='\t')
+foldx_df = pd.read_table(foldx_dataset, sep='\t')
+# Reset index to extract 'Protein' and 'Amino_Acid' from MultiIndex
+sift_df = sift_df.reset_index().rename(columns={'level_0': 'Protein', 'level_1': 'Amino_Acid'})
+foldx_df = foldx_df.reset_index().rename(columns={'level_0': 'Protein', 'level_1': 'Amino_Acid'})
+# Create specific_Protein_aa column
+sift_df['specific_Protein_aa'] = sift_df['Protein'] + '_' + sift_df['Amino_Acid']
+foldx_df['specific_Protein_aa'] = foldx_df['Protein'] + '_' + foldx_df['Amino_Acid']
+# Merge datasets
+merged_df = pd.merge(sift_df, foldx_df, on='specific_Protein_aa', how='inner')
+# Apply deleterious criteria
+deleterious_df = (merged_df['Protein Amino_Acid  sift_Score'] < 0.05) & (merged_df['Protein Amino_Acid  foldX_Score'] > 2)
+# Create a DataFrame for deleterious mutations
+deleterious_df = merged_df[(merged_df['Protein Amino_Acid  sift_Score'] < 0.05) & 
+                           (merged_df['Protein Amino_Acid  foldX_Score'] > 2)].copy()
+# Extract original amino acid
+deleterious_df["Original_Amino_acid"] = deleterious_df['Amino_Acid_x'].str[0]
+amino_acid_counts = deleterious_df['Original_Amino_acid'].value_counts()
+most_impactful_aa = amino_acid_counts.idxmax()
+most_impactful_count = amino_acid_counts.max()
+print(f"The amino acid with the highest impact on protein structure and function is: {most_impactful_aa} with {most_impactful_count} occurrences.")
+aa_frequency_table = amino_acid_counts.reset_index()
+aa_frequency_table.columns = ['Amino_acid', 'Frequency']
+print(aa_frequency_table)
+# Bar plot
+plt.figure(figsize=(10,6))
+sns.barplot(x="Amino_acid", y="Frequency", hue="Amino_acid", data= aa_frequency_table, palette='plasma', legend=False)
+plt.title('Frequency of Amino Acids in Deleterious Mutations')
+plt.xticks(rotation=45)
+plt.xlabel('Amino Acid')
+plt.ylabel('Frequency')
+plt.show()
+# Pie chart
+plt.figure(figsize=(8,9))
+plt.pie(aa_frequency_table["Frequency"], labels=aa_frequency_table["Amino_acid"], autopct='%1.1f%%', colors=sns.color_palette('plasma', len(aa_frequency_table)))
+plt.title('Amino Acid Frequency Distribution')
+plt.show()
+if most_impactful_aa == 'G':
+    print("The most impactful amino acid is Glycine (G).")
+high_frequency_aa = aa_frequency_table[aa_frequency_table["Frequency"] > 100]
+print(high_frequency_aa)
+#structural and functional impact of the most frequent amino acid
+print("Amino acid with the highest occurrences (G,A,L,P,V,R,V,I,Y,D,F,S,T,W) often have a significant impact on protein structure and function. These amino acids are often involved in key interactions, such as hydrogen bonding, hydrophobic interactions, and van der Waals forces, which are crucial for maintaining the stability and functionality of proteins.")
+
+#Task 2.7
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy.stats import ttest_ind
+
+# Load dataset
+dataset = "https://raw.githubusercontent.com/HackBio-Internship/public_datasets/main/R/nhanes.csv"
+df = pd.read_csv(dataset)
+# Process NA values by filling with zero (alternative could be dropna)
+df.dropna(inplace=True)
+# Visualize distribution of BMI, Weight, Weight (lbs), Age
+columns_to_plot = ['BMI', 'Weight', 'Age']
+df['Weight_lbs'] = df['Weight'] * 2.2
+columns_to_plot.append('Weight_lbs')
+plt.figure(figsize=(12, 8))
+for i, col in enumerate(columns_to_plot):
+    plt.subplot(2, 2, i+1)
+    sns.histplot(df[col], kde=True, color='skyblue')
+    plt.title(f'Distribution of {col}')
+plt.show()
+# Calculate Mean 60-second pulse rate
+mean_pulse = df['Pulse'].mean()
+print(f"Mean 60-second pulse rate: {mean_pulse:.5f}")  # Answer: 73.63382
+# Calculate Range of diastolic blood pressure
+min_dbp = df['BPDia'].min()
+max_dbp = df['BPDia'].max()
+print(f"Range of diastolic blood pressure: {min_dbp}-{max_dbp}")  # Answer: 0-116
+# Calculate variance and standard deviation of income
+income_variance = df['Income'].var()
+income_std = df['Income'].std()
+print(f"Income variance: {income_variance:.2f}, Standard Deviation: {income_std:.2f}")
+# Visualize relationship between Weight and Height, colored by Gender, Diabetes, and Smoking status
+plt.figure(figsize=(18, 5))
+categories = ['Gender', 'Diabetes', 'SmokingStatus']
+for i, cat in enumerate(categories):
+    plt.subplot(1, 3, i+1)
+    sns.scatterplot(data=df, x='Height', y='Weight', hue=cat, palette='viridis')
+    plt.title(f'Weight vs Height colored by {cat}')
+    plt.legend(loc='upper right')
+plt.show()
+# Statistical Test (T-tests)
+## Age vs Gender (assume 1: Male, 2: Female)
+male_age = df[df['Gender'] == 1]['Age']
+female_age = df[df['Gender'] == 2]['Age']
+t_stat1, p_val1 = ttest_ind(male_age, female_age)
+print(f"T-test Age vs Gender: p-value = {p_val1:.4f}")
+## BMI vs Diabetes (0: No, 1: Yes)
+diabetic_bmi = df[df['Diabetes'] == 1]['BMI']
+non_diabetic_bmi = df[df['Diabetes'] == 0]['BMI']
+t_stat2, p_val2 = ttest_ind(diabetic_bmi, non_diabetic_bmi)
+print(f"T-test BMI vs Diabetes: p-value = {p_val2:.4f}")
+## AlcoholYear vs Relationship Status
+yes_rel = df[df['RelationshipStatus'] == 1]['AlcoholYear']
+no_rel = df[df['RelationshipStatus'] == 2]['AlcoholYear']
+t_stat3, p_val3 = ttest_ind(yes_rel, no_rel)
+print(f"T-test AlcoholYear vs RelationshipStatus: p-value = {p_val3:.4f}")
+# Conclusions
+if p_val1 < 0.05:
+    print("\nAge differs significantly between genders.")
+else:
+    print("\nNo significant difference in age between genders.")
+
+if p_val2 < 0.05:
+    print("BMI differs significantly based on diabetes status.")
+else:
+    print("No significant difference in BMI based on diabetes status.")
+
+if p_val3 < 0.05:
+    print("Alcohol consumption per year significantly differs by relationship status.")
+else:
+    print("No significant difference in alcohol consumption by relationship status.")
