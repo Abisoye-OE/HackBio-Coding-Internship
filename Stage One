@@ -1,0 +1,78 @@
+# Function 1
+def translate_dna(dna_sequence): 
+    codon_table = {
+        'ATA': 'I', 'ATC': 'I', 'ATT': 'I', 'ATG': 'M',
+        'ACA': 'T', 'ACC': 'T', 'ACG': 'T', 'ACT': 'T',
+        'AAC': 'N', 'AAT': 'N', 'AAA': 'K', 'AAG': 'K',
+        'AGC': 'S', 'AGT': 'S', 'AGA': 'R', 'AGG': 'R',
+        'CTA': 'L', 'CTC': 'L', 'CTG': 'L', 'CTT': 'L',
+        'CCA': 'P', 'CCC': 'P', 'CCG': 'P', 'CCT': 'P',
+        'CAC': 'H', 'CAT': 'H', 'CAA': 'Q', 'CAG': 'Q',
+        'CGA': 'R', 'CGC': 'R', 'CUG': 'R', 'CGT': 'R',
+        'GTA': 'V', 'GTC': 'V', 'GTG': 'V', 'GTT': 'V',
+        'GCA': 'A', 'GCC': 'A', 'GCG': 'A', 'GCT': 'A',
+        'GAC': 'D', 'GAT': 'D', 'GAA': 'E', 'GAG': 'E',
+        'GGA': 'G', 'GGC': 'G', 'GGG': 'G', 'GGT': 'G',
+        'TCA': 'S', 'TCC': 'S', 'TCG': 'S', 'TCT': 'S',
+        'TTC': 'F', 'TTT': 'F', 'TTA': 'L', 'TTG': 'L',
+        'TAC': 'Y', 'TAT': 'Y', 'TAA': '_', 'TAG': '_',
+        'TGA': '_'
+    }
+    # Ensure the sequence is uppercase
+    dna_sequence = dna_sequence.upper() 
+    protein = ""
+    for n in range(0, len(dna_sequence) - 2, 3): 
+        codon = dna_sequence[n:n+3]  
+        amino_acid = codon_table.get(codon, '!')  
+        if amino_acid == '_':
+            break  # Stop translation if stop codon is found
+        protein += amino_acid  
+    return protein
+
+# Function 2
+def simulate_logistic_growth(initial_population, carrying_capacity, growth_rate, time_steps, lag_phase, exponential_phase):
+    population = initial_population  
+    population_over_time = []  
+    for i in range(time_steps): 
+        if i < lag_phase:
+            population += 1  
+        elif i < lag_phase + exponential_phase:
+            population *= growth_rate 
+        else:
+            if population > carrying_capacity:
+                population = carrying_capacity 
+        population_over_time.append(round(population, 2))  
+    return population_over_time  
+# Generating a dataFrame with 100 different growth curves using the function
+growth_curves = []
+for i in range(1, 101):  
+    curve = simulate_logistic_growth(
+        initial_population=50,
+        carrying_capacity=1000,
+        growth_rate=1.2,
+        time_steps=20,
+        lag_phase=(i % 5) + 1,  
+        exp_phase=(i % 7) + 3  
+    )
+    growth_curves.append(["Curve " + str(i)] + curve) 
+for curve in growth_curves[:100]:  
+    print(curve)
+
+# Function 3
+def time_to_reach_80_percent(population_data):
+    maximum_population = max(population_data)   
+    desired_population = 0.8 * maximum_population  
+    for time_step in range(len(population_data)):  
+        if population_data[time_step] >= desired_population: 
+            return time_step  
+    return -1  
+  
+# function 4
+def hamming_distance(slack_username, twitter_handle):
+    if len(slack_username) != len(twitter_handle):  
+        return -1  
+    distance = 0  
+    for i in range(len(slack_username)):  
+        if slack_username[i] != twitter_handle[i]:  
+            distance += 1  
+    return distance
